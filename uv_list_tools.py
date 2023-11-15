@@ -19,13 +19,16 @@ import bpy
 from bpy.types import Operator
 
 bl_info = {
-    "name": "UV Tools",
-    "author": "Jake Dube, cdeguise, bovesan",
+    "name": "UV List Tools",
+    "author": "Jake Dube, cdeguise, bovesan, APEC",
     "version": (1, 1),
     "blender": (2, 80, 0),
     "location": "UV maps in properties window",
     "description": "Some tools for uv maps that should already be in Blender.",
-    "category": "UV"}
+    "doc_url": "https://blender.stackexchange.com/questions/67266/changing-order-of-uv-maps/",
+    "tracker_url": "https://blender.stackexchange.com/questions/67266/changing-order-of-uv-maps/",
+    "category": "UV"
+}
 
 
 def make_active(name):
@@ -38,7 +41,6 @@ def make_active(name):
 
 
 def move_to_bottom(index):
-#    uvs = bpy.context.scene.objects.active.data.uv_textures
     uvs = bpy.context.view_layer.objects.active.data.uv_layers
     uvs.active_index = index
     new_name = uvs.active.name
@@ -54,8 +56,8 @@ def move_to_bottom(index):
     uvs.active.name = new_name
 
 
-class MoveUVMapDown(Operator):
-    bl_idname = "uv_tools.move_uvmap_down"
+class MESH_OT_uv_down(Operator):
+    bl_idname = "mesh.uv_texture_down"
     bl_label = "Move Down"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -84,8 +86,8 @@ class MoveUVMapDown(Operator):
         return {'FINISHED'}
 
 
-class MoveUVMapUp(Operator):
-    bl_idname = "uv_tools.move_uvmap_up"
+class MESH_OT_uv_up(Operator):
+    bl_idname = "mesh.uv_texture_up"
     bl_label = "Move Up"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -97,28 +99,87 @@ class MoveUVMapUp(Operator):
 
         original = uvs.active.name
         uvs.active_index -= 1
-        bpy.ops.uv_tools.move_uvmap_down()
+        bpy.ops.mesh.uv_texture_down()
         make_active(original)
 
         return {'FINISHED'}
 
 
+class MESH_OT_uv_a_to_z (Operator):
+    bl_idname = 'mesh.uv_texture_a_to_z'
+    bl_label = 'Sort A to Z'
+    bl_description = "Sorting UVs by name (A to Z)"
+    bl_options = {"REGISTER", "UNDO"}
+  
+    def execute(self, context):        
+        uvs = context.view_layer.objects.active.data.uv_layers
+        orig_name = uvs.active.name
+        
+        for j in range (len(uvs)):
+            for i in range (len(uvs)-1):
+                uvs.active_index = i
+                temp_name = uvs.active.name
+                uvs.active_index = i+1
+                if uvs.active.name < temp_name:
+                    bpy.ops.mesh.uv_texture_up()
+                    
+        make_active(orig_name)
+                    
+        return {"FINISHED"}
+        
+    
+class MESH_OT_uv_z_to_a (Operator):
+    bl_idname = 'mesh.uv_texture_z_to_a'
+    bl_label = 'Sort Z to A'
+    bl_description = "Sorting UVs by name (Z to A)"
+    bl_options = {"REGISTER", "UNDO"}
+  
+    def execute(self, context):
+        uvs = context.view_layer.objects.active.data.uv_layers
+        orig_name = uvs.active.name
+         
+        for j in range (len(uvs)):
+            for i in range (len(uvs)-1):
+                uvs.active_index = i+1
+                temp_name = uvs.active.name
+                uvs.active_index = i
+                if uvs.active.name < temp_name:
+                    bpy.ops.mesh.uv_texture_down()
+        
+        make_active(orig_name)
+                    
+        return {"FINISHED"}
+
+
 def uv_tools_addition(self, context):
-    layout = self.layout
-    col = layout.column(align=True)
-    col.operator("uv_tools.move_uvmap_up", icon='TRIA_UP')
-    col.operator("uv_tools.move_uvmap_down", icon='TRIA_DOWN')
+    layout = self.layout      
+    layout.label(text="Active object UV Tools:")
+    row = layout.row()
+    
+    col1 = row.column(align=True)
+    col1.operator("mesh.uv_texture_up", icon='TRIA_UP')
+    col1.operator("mesh.uv_texture_down", icon='TRIA_DOWN')
+    
+    layout.separator()   
+     
+    col2 = row.column(align=True)
+    col2.operator("mesh.uv_texture_a_to_z", icon='TRIA_UP_BAR')
+    col2.operator("mesh.uv_texture_z_to_a", icon='TRIA_DOWN_BAR')
 
 
 def register():
-    bpy.utils.register_class(MoveUVMapDown)
-    bpy.utils.register_class(MoveUVMapUp)
+    bpy.utils.register_class(MESH_OT_uv_down)
+    bpy.utils.register_class(MESH_OT_uv_up)
+    bpy.utils.register_class(MESH_OT_uv_a_to_z)
+    bpy.utils.register_class(MESH_OT_uv_z_to_a)
     bpy.types.DATA_PT_uv_texture.append(uv_tools_addition)
 
 
 def unregister():
-    bpy.utils.unregister_class(MoveUVMapDown)
-    bpy.utils.unregister_class(MoveUVMapUp)
+    bpy.utils.unregister_class(MESH_OT_uv_down)
+    bpy.utils.unregister_class(MESH_OT_uv_up)
+    bpy.utils.unregister_class(MESH_OT_uv_a_to_z)
+    bpy.utils.unregister_class(MESH_OT_uv_z_to_a)
     bpy.types.DATA_PT_uv_texture.remove(uv_tools_addition)
 
 
