@@ -24,4 +24,5 @@ This is a slight expansion (two more options) and UI revision (more compact) of 
 
 ### Notes
 
+- Changing UV map order requires duplicating and removing maps as discussed [here on StackExchange](https://blender.stackexchange.com/questions/67266/changing-order-of-uv-maps/); while it should be safe, it's helpful to know how something operates if you ever experience odd behaviour
 - Seems to be working pretty well in Blender 3.6, and should work all the way back to 2.8, but this add-on is provided free and without warranty
